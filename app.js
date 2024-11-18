@@ -3,7 +3,7 @@ const _ = require("lodash");
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
-
+const port = 1234;
 var posts = [];
 
 const homeStartingContent =
@@ -20,7 +20,7 @@ app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-app.listen(1234, function () {
+app.listen(port, function () {
   console.log("Server started on port 1234");
   console.log("http://localhost:1234");
 });
