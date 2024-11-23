@@ -2,9 +2,12 @@
 const _ = require("lodash");
 const express = require("express");
 const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
+const Product = require("./model/product.model.js");
+const env = require("dotenv").config();
+
 const ejs = require("ejs");
 const port = 1234;
-var posts = [];
 
 const homeStartingContent =
   "Lacus vel facilisis volutpat est velit egestas dui id ornare. Semper auctor neque vitae tempus quam. Sit amet cursus sit amet dictum sit amet justo. Viverra tellus in hac habitasse. Imperdiet proin fermentum leo vel orci porta. Donec ultrices tincidunt arcu non sodales neque sodales ut. Mattis molestie a iaculis at erat pellentesque adipiscing. Magnis dis parturient montes nascetur ridiculus mus mauris vitae ultricies. Adipiscing elit ut aliquam purus sit amet luctus venenatis lectus. Ultrices vitae auctor eu augue ut lectus arcu bibendum at. Odio euismod lacinia at quis risus sed vulputate odio ut. Cursus mattis molestie a iaculis at erat pellentesque adipiscing.";
@@ -17,21 +20,38 @@ const app = express();
 
 app.set("view engine", "ejs");
 
-app.use(bodyParser.urlencoded({ extended: true }));
+// app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
+app.use(express.urlencoded({ extended: false }));
 
-app.listen(port, function () {
-  console.log("Server started on port 1234");
-  console.log("http://localhost:1234");
-});
+mongoose
+  .connect(process.env.URL)
+  .then(function () {
+    app.listen(1234, (req, res) => {
+      console.log("Server on http://localhost:1234");
+    });
+  })
+  .catch(function (e) {});
 
-app.get("/", function (req, res) {
-  res.render("home", { homeContent: homeStartingContent, workList: posts });
+app.get("/", async (req, res) => {
+  var item = [];
+  try {
+    const product = await Product.find({});
+    product.forEach((element) => {
+      item.push({ title: element.title, post: element.body });
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+
+  res.render("home", { homeContent: homeStartingContent, workList: item });
 });
 
 app.get("/contact", function (req, res) {
   res.render("contact", { contactContent: contactStringContent });
 });
+
 app.get("/about", function (req, res) {
   res.render("about", { boutContent: aboutContent });
 });
@@ -40,28 +60,33 @@ app.get("/compose", function (req, res) {
   res.render("compose", {});
 });
 
-app.post("/compose", function (req, res) {
-  var x = {
-    title: req.body.postTitle,
-    post: req.body.postBody,
-  };
-
-  console.log(x);
-  posts.push(x);
-  res.redirect("/");
+app.post("/compose", async (req, res) => {
+  try {
+    const product = await Product.create({
+      title: req.body.postTitle,
+      body: req.body.postBody,
+    });
+    res.redirect("/");
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
-app.get("/blogs/:topic", function (req, res) {
-  posts.forEach((x) => {
+app.get("/blogs/:topic", async (req, res) => {
+  var item = [];
+  try {
+    const product = await Product.find({});
+    product.forEach((element) => {
+      item.push({ title: element.title, post: element.body });
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+
+  item.forEach((x) => {
     if (_.lowerCase(x.title) == _.lowerCase(req.params.topic)) {
       res.render("post", { title: x.title, body: x.post });
     }
   });
-  console.log(_.lowerCase(req.params.topic));
 });
-
-function redirectCompose() {
-  app.get("/compose", function (req, res) {
-    res.render("compose", {});
-  });
-}

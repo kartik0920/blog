@@ -4,9 +4,8 @@
 
 <% for( let i = 0; i < workList.length; i++ ) { %>
     <H2><%= workList[i].title %></H2>
-  
    
-<p><%= workList[i].post.substring(1,100)+"..."  %><a href="/blogs/<%= workList[i].title %>">Read More</a></p>
+<p><%= workList[i].post.substring(0,100)+"..."  %><a href="/blogs/<%= workList[i].title %>">Read More</a></p>
 <% } %>
 
 <a href="/compose"><button class ="btn btn-primary m-2  " > Add new Blog</button></a>
